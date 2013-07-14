@@ -51,7 +51,7 @@ server.deserializeClient(function(id, done) {
 server.grant(oauth2orize.grant.code(function(client, redirectURI, user, ares, done) {
   var code = utils.uid(16)
   
-  db.authorizationCodes.save(code, client.id, redirectURI, user.id, function(err) {
+  db.authorizationCodes.save(code, client.id, redirectURI, user.id, client.scope, function(err) {
     if (err) { return done(err); }
     done(null, code);
   });
@@ -70,7 +70,7 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectURI, do
     if (redirectURI !== authCode.redirectURI) { return done(null, false); }
     
     var token = utils.uid(256)
-    db.accessTokens.save(token, authCode.userID, authCode.clientID, function(err) {
+    db.accessTokens.save(token, authCode.userID, authCode.clientID, authCode.scope, function(err) {
       if (err) { return done(err); }
       done(null, token);
     });
@@ -97,9 +97,10 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectURI, do
 
 exports.authorization = [
   login.ensureLoggedIn(),
-  server.authorization(function(clientID, redirectURI, done) {
+  server.authorization(function(clientID, redirectURI, scope, done) {
     db.clients.findByClientId(clientID, function(err, client) {
       if (err) { return done(err); }
+      client.scope = scope;
       // WARNING: For security purposes, it is highly advisable to check that
       //          redirectURI provided by the client matches one registered with
       //          the server.  For simplicity, this example does not.  You have
