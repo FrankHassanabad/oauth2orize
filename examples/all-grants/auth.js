@@ -86,25 +86,25 @@ passport.use(new BearerStrategy(
       if (!token) { return done(null, false); }
 
       if(token.userID != null) {
-          db.users.find(token.userID, function(err, user) {
-              if (err) { return done(err); }
-              if (!user) { return done(null, false); }
-              // to keep this example simple, restricted scopes are not implemented,
-              // and this is just for illustrative purposes
-              var info = { scope: '*' }
-              done(null, user, info);
-          });
+        db.users.find(token.userID, function(err, user) {
+          if (err) { return done(err); }
+          if (!user) { return done(null, false); }
+          // to keep this example simple, restricted scopes are not implemented,
+          // and this is just for illustrative purposes
+          var info = { scope: '*' }
+          done(null, user, info);
+        });
       } else {
-          //The request came from a client only since userID is null
-          //therefore the client is passed back instead of a user
-          db.clients.findByClientId(token.clientID, function(err, client) {
-             if(err) { return done(err); }
-              if(!client) { return done(null, false); }
-              // to keep this example simple, restricted scopes are not implemented,
-              // and this is just for illustrative purposes
-              var info = { scope: '*' }
-              done(null, client, info);
-          });
+        //The request came from a client only since userID is null
+        //therefore the client is passed back instead of a user
+        db.clients.find(token.clientID, function(err, client) {
+          if(err) { return done(err); }
+          if(!client) { return done(null, false); }
+          // to keep this example simple, restricted scopes are not implemented,
+          // and this is just for illustrative purposes
+          var info = { scope: '*' }
+          done(null, client, info);
+        });
       }
     });
   }

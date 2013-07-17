@@ -6,7 +6,13 @@ exports.find = function(key, done) {
   return done(null, code);
 };
 
-exports.save = function(code, clientID, redirectURI, userID, done) {
-  codes[code] = { clientID: clientID, redirectURI: redirectURI, userID: userID };
+exports.save = function(code, clientID, redirectURI, userID, scope, done) {
+  codes[code] = { clientID: clientID, redirectURI: redirectURI, userID: userID, scope: scope };
   return done(null);
 };
+
+exports.delete = function(key, done) {
+    delete codes[key];
+    return done(null);
+}
+

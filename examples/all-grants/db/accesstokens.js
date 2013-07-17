@@ -6,7 +6,7 @@ exports.find = function(key, done) {
   return done(null, token);
 };
 
-exports.save = function(token, userID, clientID, done) {
-  tokens[token] = { userID: userID, clientID: clientID };
+exports.save = function(token, userID, clientID, scope, done) {
+  tokens[token] = { userID: userID, clientID: clientID, scope: scope};
   return done(null);
 };
