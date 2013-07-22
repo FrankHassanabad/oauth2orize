@@ -125,7 +125,6 @@ server.exchange(oauth2orize.exchange.password(function(client, username, passwor
         //a refresh token or not
         if(scope && scope.indexOf("offline_access") === 0) {
           refreshToken = utils.uid(256);
-          //TODO, shouldn't I be saving the client.id and not client.clientId?
           db.refreshTokens.save(refreshToken, user.id, client.id, scope, function(err) {
             if (err) { return done(err); }
             done(null, token, refreshToken);

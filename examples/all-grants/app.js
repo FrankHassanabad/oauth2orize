@@ -8,8 +8,8 @@ var express = require('express')
   , user = require('./user')
   , client = require('./client')
   , util = require('util')
-  
-  
+  , token = require('./token')
+
 // Express configuration
   
 var app = express.createServer();
@@ -18,6 +18,7 @@ app.use(express.logger());
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.use(express.session({ secret: 'keyboard cat' }));
+
 /*
 app.use(function(req, res, next) {
   console.log('-- session --');
@@ -49,5 +50,11 @@ app.post('/oauth/token', oauth2.token);
 
 app.get('/api/userinfo', user.info);
 app.get('/api/clientinfo', client.info);
+
+//
+// Mimicing google's token info endpint from
+// https://developers.google.com/accounts/docs/OAuth2UserAgent#validatetoken
+app.get('/api/tokeninfo', token.info);
+
 
 app.listen(3000);

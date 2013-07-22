@@ -1,5 +1,5 @@
 {
-  "name": "oauth2orize-example",
+  "name": "oauth2orize-all-grants-example",
   "version": "0.0.0",
   "dependencies": {
     "express": "2.x.x",
