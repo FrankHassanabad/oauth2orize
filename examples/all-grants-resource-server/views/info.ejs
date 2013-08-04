@@ -20,7 +20,7 @@ $(document).ready(function(){
             headers: {
                 "Authorization": "Bearer <%= access_token %>"
             },
-            url: "http://localhost:4000/api/protectedEndPoint",
+            url: "/api/protectedEndPoint",
             success: function (result) {
                 $("#protectedEndPointData").html(result);
             },

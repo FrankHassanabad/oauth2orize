@@ -14,6 +14,17 @@ exports.loginForm = function(req, res) {
 
 exports.login = passport.authenticate('local', { successReturnToOrRedirect: '/', failureRedirect: '/login' });
 
+/**
+ * OAuth 2.0 Login
+ * https://localhost:4000/login
+ *
+ * Although this uses login.ensureLoggedIn(), behind the scenes it's
+ * using OAuth 2.0's Resource Owner Password Credentials to authenticate
+ * the user.  On Authentication, a regular web session is created, and
+ * a access_token and refresh_token are attached.
+ *
+ * See auth.js's LocalStrategy
+ */
 exports.info = [
     login.ensureLoggedIn(),
     function(req, res) {

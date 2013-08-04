@@ -1,12 +1,12 @@
-/**
- * Module dependencies.
- */
 var express = require('express')
   , site = require('./site')
   , passport = require('passport')
+  , fs = require('fs')
+  , http = require('http')
+  , https = require('https');
 
 // Express configuration
-var app = express.createServer();
+var app = express();
 app.set('view engine', 'ejs');
 app.use(express.logger());
 app.use(express.cookieParser());
@@ -21,10 +21,26 @@ app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 // Passport configuration
 require('./auth');
 
-
 app.get('/', site.index);
 app.get('/login', site.loginForm);
 app.post('/login', site.login);
 app.get('/info', site.info);
 app.get('/api/protectedEndPoint', site.protectedEndPoint);
-app.listen(4000);
+
+//TODO: Change these for your own certificates.  This was generated
+//through the commands:
+//openssl genrsa -out privatekey.pem 1024
+//openssl req -new -key privatekey.pem -out certrequest.csr
+//openssl x509 -req -in certrequest.csr -signkey privatekey.pem -out certificate.pem
+var options = {
+    key: fs.readFileSync('certs/privatekey.pem'),
+    cert: fs.readFileSync('certs/certificate.pem')
+};
+
+//This setting is so that our certificates will work although they are all self signed
+//TODO Remove this if you are NOT using self signed certs
+https.globalAgent.options.rejectUnauthorized = false;
+
+// Create our HTTPS server listening on port 3000.
+https.createServer(options, app).listen(4000);
+

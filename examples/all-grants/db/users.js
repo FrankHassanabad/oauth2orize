@@ -1,3 +1,5 @@
+//TODO Document all of this
+
 var users = [
     { id: '1', username: 'bob', password: 'secret', name: 'Bob Smith' },
     { id: '2', username: 'joe', password: 'password', name: 'Joe Davis' }

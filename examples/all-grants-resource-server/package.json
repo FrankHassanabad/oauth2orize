@@ -2,7 +2,7 @@
     "name": "oauth2orize-all-grants-resource-server-example",
     "version": "0.0.0",
     "dependencies": {
-        "express": "2.x.x",
+        "express": "3.x.x",
         "ejs": "0.7.x",
         "passport": "~0.1.12",
         "passport-local": "0.1.x",

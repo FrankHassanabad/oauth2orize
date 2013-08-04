@@ -1,13 +1,11 @@
 var passport = require('passport')
     , https = require('https')
-    , http = require('http')
     , LocalStrategy = require('passport-local').Strategy
     , OAuth2 = require('oauth').OAuth2
     , tokens = require('./tokens').tokens
     , client = require('./config').client
     , BearerStrategy = require('passport-http-bearer').Strategy
     , authorization = require('./config').authorization;
-
 
 /**
  * LocalStrategy
@@ -28,14 +26,16 @@ var passport = require('passport')
  * token passed to them through the Authorization Bearer usage.
  */
 passport.use(new LocalStrategy(
-    function(username, password, done) {
-        var oauth2 = new OAuth2(client.clientID,client.clientSecret,authorization.url,null,authorization.tokenURL,null);
-        oauth2.getOAuthAccessToken('',{'grant_type':'password', 'username': username, 'password': password, 'scope': 'offline_access'},
+    function (username, password, done) {
+        var oauth2 = new OAuth2(client.clientID, client.clientSecret, authorization.url, null, authorization.tokenURL, null);
+        oauth2.getOAuthAccessToken('', {'grant_type': 'password', 'username': username, 'password': password, 'scope': 'offline_access'},
             function (e, access_token, refresh_token, results) {
-                if(access_token) {
+                if (access_token) {
                     //TODO scopes
-                    tokens.save(access_token, refresh_token, client.clientID, null, function(err) {
-                        if(err) { return done(null, false); }
+                    tokens.save(access_token, refresh_token, client.clientID, null, function (err) {
+                        if (err) {
+                            return done(null, false);
+                        }
                         return done(null, {accessToken: access_token, refreshToken: refresh_token});
                     });
                 } else {
@@ -55,30 +55,27 @@ passport.use(new LocalStrategy(
  * the authorizing user.
  */
 passport.use(new BearerStrategy(
-    function(accessToken, done) {
-        tokens.find(accessToken, function(err, token) {
-           if (err) {return done(err); }
-            if(!token) {
-                //TODO Dynamically set the http or https just like it does
-                //within the ouath side.  Use the configured authorization information
-                //and then figure out if you need http or https.  From there call this
-                //to get te data and return correctly
-                //TODO Set the endpoint information to be part of config
+    function (accessToken, done) {
+        tokens.find(accessToken, function (err, token) {
+            if (err) {
+                return done(err);
+            }
+            if (!token) {
                 var optionsget = {
-                    host : 'localhost',
-                    port : 3000,
-                    path : '/api/tokeninfo?access_token=' + accessToken,
-                    method : 'GET'
+                    host: authorization.host,
+                    port: authorization.port,
+                    path: authorization.tokeninfoURL + accessToken,
+                    method: 'GET'
                 };
-                var reqGet = http.request(optionsget, function(res) {
-                    if(res.statusCode === 200) {
-                        res.on('data', function(data) {
+                var reqGet = https.request(optionsget, function (res) {
+                    if (res.statusCode === 200) {
+                        res.on('data', function (data) {
                             var jsonReturn = JSON.parse(data);
-                            if(jsonReturn.error) {
+                            if (jsonReturn.error) {
                                 return done(null, false);
                             } else {
                                 //TODO scopes
-                                tokens.save(accessToken, null, client.clientID, null, function(err) {
+                                tokens.save(accessToken, null, client.clientID, null, function (err) {
                                     return done(null, accessToken);
                                 });
                             }
@@ -95,6 +92,18 @@ passport.use(new BearerStrategy(
     }
 ));
 
+// Register serialialization and deserialization functions.
+//
+// When a client redirects a user to user authorization endpoint, an
+// authorization transaction is initiated.  To complete the transaction, the
+// user must authenticate and approve the authorization request.  Because this
+// may involve multiple HTTPS request/response exchanges, the transaction is
+// stored in the session.
+//
+// An application must supply serialization functions, which determine how the
+// client object is serialized into the session.  Typically this will be a
+// simple matter of serializing the client's ID, and deserializing by finding
+// the client by ID from the database.
 
 passport.serializeUser(function(user, done) {
     done(null, user);

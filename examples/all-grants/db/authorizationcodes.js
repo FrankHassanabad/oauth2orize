@@ -1,3 +1,5 @@
+//TODO Document all of this
+
 var codes = {};
 
 
