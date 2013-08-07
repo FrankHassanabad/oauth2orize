@@ -2,7 +2,7 @@ var passport = require('passport')
     , https = require('https')
     , LocalStrategy = require('passport-local').Strategy
     , OAuth2 = require('oauth').OAuth2
-    , tokens = require('./tokens').tokens
+    , db = require('./db')
     , client = require('./config').client
     , BearerStrategy = require('passport-http-bearer').Strategy
     , authorization = require('./config').authorization;
@@ -32,12 +32,26 @@ passport.use(new LocalStrategy(
             function (e, access_token, refresh_token, results) {
                 if (access_token) {
                     //TODO scopes
-                    tokens.save(access_token, refresh_token, client.clientID, null, function (err) {
+                    var expirationDate = null;
+                    if(results.expires_in) {
+                        expirationDate = new Date(new Date().getTime() + (results.expires_in * 1000));
+                    }
+                    var saveAccessToken = function (err) {
                         if (err) {
                             return done(null, false);
                         }
                         return done(null, {accessToken: access_token, refreshToken: refresh_token});
-                    });
+                    };
+                    if (refresh_token) {
+                        db.refreshTokens.save(refresh_token, client.clientID, null, function (err) {
+                            if (err) {
+                                return done(null, false);
+                            }
+                            db.accessTokens.save(access_token, expirationDate, client.clientID, null, saveAccessToken);
+                        });
+                    } else {
+                        db.accessTokens.save(access_token, expirationDate, client.clientID, null, saveAccessToken);
+                    }
                 } else {
                     return done(null, false);
                 }
@@ -56,7 +70,7 @@ passport.use(new LocalStrategy(
  */
 passport.use(new BearerStrategy(
     function (accessToken, done) {
-        tokens.find(accessToken, function (err, token) {
+        db.accessTokens.find(accessToken, function (err, token) {
             if (err) {
                 return done(err);
             }
@@ -74,8 +88,15 @@ passport.use(new BearerStrategy(
                             if (jsonReturn.error) {
                                 return done(null, false);
                             } else {
+                                var expirationDate = null;
+                                if(jsonReturn.expires_in) {
+                                    expirationDate = new Date(new Date().getTime() + (jsonReturn.expires_in * 1000));
+                                }
                                 //TODO scopes
-                                tokens.save(accessToken, null, client.clientID, null, function (err) {
+                                db.accessTokens.save(accessToken, expirationDate, client.clientID, null, function (err) {
+                                    if(err) {
+                                        return done(err);
+                                    }
                                     return done(null, accessToken);
                                 });
                             }
@@ -86,7 +107,17 @@ passport.use(new BearerStrategy(
                 });
                 reqGet.end();
             } else {
-                return done(null, token);
+                if(token.expirationDate && (new Date() > token.expirationDate)) {
+                    db.accessTokens.delete(token, function(err) {
+                        if(err) {
+                            return done(err);
+                        } else {
+                            return done(null, false);
+                        }
+                    });
+                } else {
+                    return done(null, token);
+                }
             }
         });
     }

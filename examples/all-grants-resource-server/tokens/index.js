@@ -1,1 +1,0 @@
-exports.tokens = require('./tokens');

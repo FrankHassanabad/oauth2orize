@@ -24,7 +24,17 @@ exports.find = function(accessToken, done) {
  * @param scope The scope (optional)
  * @param done Calls this with null
  */
-exports.save = function(accessToken, refreshToken, clientID, scope, done) {
-    tokens[accessToken] = { accessToken: accessToken, refreshToken: refreshToken, clientID: clientID, scope: scope};
+exports.save = function(refreshToken, clientID, scope, done) {
+    tokens[refreshToken] = { refreshToken: refreshToken, clientID: clientID, scope: scope };
     return done(null);
 };
+
+/**
+ * Deletes an access token
+ * @param accessToken The access token to delete
+ * @param done returns this when done
+ */
+exports.delete = function(accessToken, done) {
+    delete tokens[accessToken];
+    return done(null);
+}

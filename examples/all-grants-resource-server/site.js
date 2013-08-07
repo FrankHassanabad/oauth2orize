@@ -1,6 +1,5 @@
 var passport = require('passport')
     , login = require('connect-ensure-login')
-    , tokens = require('./tokens').tokens
     , client = require('./config').client;
 
 

@@ -8,7 +8,9 @@ var express = require('express')
     , token = require('./token')
     , http = require('http')
     , https = require('https')
-    , fs = require('fs');
+    , fs = require('fs')
+    , config = require('./config')
+    , db = require('./db');
 
 // Express configuration
 var app = express();
@@ -41,6 +43,17 @@ app.get('/api/clientinfo', client.info);
 // Mimicking google's token info endpoint from
 // https://developers.google.com/accounts/docs/OAuth2UserAgent#validatetoken
 app.get('/api/tokeninfo', token.info);
+
+//From time to time we need to clean up any expired tokens
+//in the database
+setInterval(function () {
+    console.log("Checking for expired tokens");
+    db.accessTokens.removeExpired(function(err) {
+        if(err) {
+            console.log("Error removing expired tokens");
+        }
+    });
+}, config.db.timeToCheckExpiredTokens * 1000);
 
 //TODO: Change these for your own certificates.  This was generated
 //through the commands:

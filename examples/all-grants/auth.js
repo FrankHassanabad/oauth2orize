@@ -98,34 +98,40 @@ passport.use(new BearerStrategy(
             if (!token) {
                 return done(null, false);
             }
-            if (token.userID != null) {
-                db.users.find(token.userID, function (err, user) {
-                    if (err) {
-                        return done(err);
-                    }
-                    if (!user) {
-                        return done(null, false);
-                    }
-                    // to keep this example simple, restricted scopes are not implemented,
-                    // and this is just for illustrative purposes
-                    var info = { scope: '*' };
-                    return done(null, user, info);
+            if(new Date() > token.expirationDate) {
+                db.accessTokens.delete(accessToken, function(err) {
+                    return done(err);
                 });
             } else {
-                //The request came from a client only since userID is null
-                //therefore the client is passed back instead of a user
-                db.clients.find(token.clientID, function (err, client) {
-                    if (err) {
-                        return done(err);
-                    }
-                    if (!client) {
-                        return done(null, false);
-                    }
-                    // to keep this example simple, restricted scopes are not implemented,
-                    // and this is just for illustrative purposes
-                    var info = { scope: '*' };
-                    return done(null, client, info);
-                });
+                if (token.userID != null) {
+                    db.users.find(token.userID, function (err, user) {
+                        if (err) {
+                            return done(err);
+                        }
+                        if (!user) {
+                            return done(null, false);
+                        }
+                        // to keep this example simple, restricted scopes are not implemented,
+                        // and this is just for illustrative purposes
+                        var info = { scope: '*' };
+                        return done(null, user, info);
+                    });
+                } else {
+                    //The request came from a client only since userID is null
+                    //therefore the client is passed back instead of a user
+                    db.clients.find(token.clientID, function (err, client) {
+                        if (err) {
+                            return done(err);
+                        }
+                        if (!client) {
+                            return done(null, false);
+                        }
+                        // to keep this example simple, restricted scopes are not implemented,
+                        // and this is just for illustrative purposes
+                        var info = { scope: '*' };
+                        return done(null, client, info);
+                    });
+                }
             }
         });
     }

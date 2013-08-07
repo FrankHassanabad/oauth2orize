@@ -1,9 +1,11 @@
 var express = require('express')
-  , site = require('./site')
-  , passport = require('passport')
-  , fs = require('fs')
-  , http = require('http')
-  , https = require('https');
+    , site = require('./site')
+    , passport = require('passport')
+    , fs = require('fs')
+    , http = require('http')
+    , https = require('https')
+    , config = require('./config')
+    , db = require('./db');
 
 // Express configuration
 var app = express();
@@ -26,6 +28,18 @@ app.get('/login', site.loginForm);
 app.post('/login', site.login);
 app.get('/info', site.info);
 app.get('/api/protectedEndPoint', site.protectedEndPoint);
+
+//From time to time we need to clean up any expired tokens
+//in the database
+setInterval(function () {
+    console.log("Checking for expired tokens");
+    db.accessTokens.removeExpired(function(err) {
+        if(err) {
+            console.log("Error removing expired tokens");
+        }
+    });
+}, config.db.timeToCheckExpiredTokens * 1000);
+
 
 //TODO: Change these for your own certificates.  This was generated
 //through the commands:

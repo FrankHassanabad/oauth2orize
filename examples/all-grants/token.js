@@ -26,13 +26,26 @@ exports.info = [
                 if (err || !token) {
                     res.status(400);
                     res.json({ error: "invalid_token" });
-                } else {
+                } else if(new Date() > token.expirationDate) {
+                    res.status(400);
+                    res.json({ error: "invalid_token" });
+                }
+                else {
                     db.clients.find(token.clientID, function (err, client) {
                         if (err || !client) {
                             res.status(400);
                             res.json({ error: "invalid_token"});
                         } else {
-                            res.json({audience: client.clientId })
+                            if(token.expirationDate) {
+                                var expirationLeft =  Math.floor((token.expirationDate.getTime() - new Date().getTime()) / 1000);
+                                if(expirationLeft <= 0) {
+                                    res.json({ error: "invalid_token"});
+                                } else {
+                                    res.json({ audience: client.clientId, expires_in: expirationLeft});
+                                }
+                            } else {
+                                res.json({audience: client.clientId })
+                            }
                         }
                     });
                 }

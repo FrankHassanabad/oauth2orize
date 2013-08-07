@@ -5,7 +5,8 @@ var oauth2orize = require('oauth2orize')
     , passport = require('passport')
     , login = require('connect-ensure-login')
     , db = require('./db')
-    , utils = require('./utils');
+    , utils = require('./utils')
+    , config = require('./config');
 
 // create OAuth 2.0 server
 var server = oauth2orize.createServer();
@@ -46,11 +47,11 @@ server.grant(oauth2orize.grant.code(function (client, redirectURI, user, ares, d
  */
 server.grant(oauth2orize.grant.token(function (client, user, ares, done) {
     var token = utils.uid(256);
-    db.accessTokens.save(token, user.id, client.id, client.scope, function (err) {
+    db.accessTokens.save(token, config.token.calculateExpirationDate(), user.id, client.id, client.scope, function (err) {
         if (err) {
             return done(err);
         }
-        return done(null, token);
+        return done(null, token, {expires_in: config.token.expiresIn});
     });
 }));
 
@@ -81,7 +82,7 @@ server.exchange(oauth2orize.exchange.code(function (client, code, redirectURI, d
                 return done(err);
             }
             var token = utils.uid(256);
-            db.accessTokens.save(token, authCode.userID, authCode.clientID, authCode.scope, function (err) {
+            db.accessTokens.save(token, config.token.calculateExpirationDate(), authCode.userID, authCode.clientID, authCode.scope, function (err) {
                 if (err) {
                     return done(err);
                 }
@@ -94,10 +95,10 @@ server.exchange(oauth2orize.exchange.code(function (client, code, redirectURI, d
                         if (err) {
                             return done(err);
                         }
-                        return done(null, token, refreshToken);
+                        return done(null, token, refreshToken, {expires_in: config.token.expiresIn});
                     });
                 } else {
-                    return done(null, token, refreshToken);
+                    return done(null, token, refreshToken, {expires_in: config.token.expiresIn});
                 }
             });
         });
@@ -124,7 +125,7 @@ server.exchange(oauth2orize.exchange.password(function(client, username, passwor
             return done(null, false);
         }
         var token = utils.uid(256);
-        db.accessTokens.save(token, user.id, client.id, scope, function (err) {
+        db.accessTokens.save(token, config.token.calculateExpirationDate(), user.id, client.id, scope, function (err) {
             if (err) {
                 return done(err);
             }
@@ -137,10 +138,10 @@ server.exchange(oauth2orize.exchange.password(function(client, username, passwor
                     if (err) {
                         return done(err);
                     }
-                    return done(null, token, refreshToken);
+                    return done(null, token, refreshToken, {expires_in: config.token.expiresIn});
                 });
             } else {
-                return done(null, token, refreshToken);
+                return done(null, token, refreshToken, {expires_in: config.token.expiresIn});
             }
         });
     });
@@ -156,11 +157,11 @@ server.exchange(oauth2orize.exchange.password(function(client, username, passwor
 server.exchange(oauth2orize.exchange.clientCredentials(function(client, scope, done) {
     var token = utils.uid(256);
     //Pass in a null for user id since there is no user when using this grant type
-    db.accessTokens.save(token, null, client.id, scope, function (err) {
+    db.accessTokens.save(token, config.token.calculateExpirationDate(), null, client.id, scope, function (err) {
         if (err) {
             return done(err);
         }
-        return done(null, token);
+        return done(null, token, {expires_in: config.token.expiresIn});
     });
 }));
 
@@ -183,11 +184,11 @@ server.exchange(oauth2orize.exchange.refreshToken(function(client, refreshToken,
             return done(null, false);
         }
         var token = utils.uid(256);
-        db.accessTokens.save(token, authCode.userID, authCode.clientID, authCode.scope, function (err) {
+        db.accessTokens.save(token, config.token.calculateExpirationDate(), authCode.userID, authCode.clientID, authCode.scope, function (err) {
             if (err) {
                 return done(err);
             }
-            return done(null, token);
+            return done(null, token, {expires_in: config.token.expiresIn});
         });
     });
 }));
