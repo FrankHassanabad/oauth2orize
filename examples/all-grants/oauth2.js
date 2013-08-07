@@ -161,7 +161,7 @@ server.exchange(oauth2orize.exchange.clientCredentials(function(client, scope, d
         if (err) {
             return done(err);
         }
-        return done(null, token, {expires_in: config.token.expiresIn});
+        return done(null, token, null, {expires_in: config.token.expiresIn});
     });
 }));
 
